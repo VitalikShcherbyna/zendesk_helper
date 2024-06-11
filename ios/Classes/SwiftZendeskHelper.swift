@@ -82,7 +82,7 @@ public class SwiftZendeskHelper: NSObject, FlutterPlugin {
         guard let isPreChatFormEnabled = dictionary["isPreChatFormEnabled"] as? Bool,
               let isAgentAvailabilityEnabled = dictionary["isAgentAvailabilityEnabled"] as? Bool,
               let isChatTranscriptPromptEnabled = dictionary["isChatTranscriptPromptEnabled"] as? Bool,
-              let isOfflineFormEnabled = dictionary["isOfflineFormEnabled"] as? Bool
+              let isOfflineFormEnabled = dictionary["isOfflineFormEnabled"] as? Bool,
               let viewTitle = dictionary["viewTitle"] as? String
                 
         else {return}
