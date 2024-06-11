@@ -96,11 +96,19 @@ public class SwiftZendeskHelper: NSObject, FlutterPlugin {
         
         // Chat configuration
         let chatConfiguration = ChatConfiguration()
-        chatConfiguration.isPreChatFormEnabled = isPreChatFormEnabled
         chatConfiguration.isAgentAvailabilityEnabled = isAgentAvailabilityEnabled
         chatConfiguration.isChatTranscriptPromptEnabled = isChatTranscriptPromptEnabled
         chatConfiguration.isOfflineFormEnabled = isOfflineFormEnabled
         chatConfiguration.chatMenuActions = [.emailTranscript, .endChat]
+
+        if isPreChatFormEnabled {
+            let formConfiguration = ChatFormConfiguration(name: .required,
+                                                email: .required,
+                                                phoneNumber: .hidden,
+                                                department: .required)
+            chatConfiguration.isPreChatFormEnabled = true
+            chatConfiguration.preChatFormConfiguration = formConfiguration
+        }
         
         // Build view controller
         let chatEngine = try ChatEngine.engine()
