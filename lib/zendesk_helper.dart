@@ -49,12 +49,14 @@ class Zendesk {
   /// chat transcript at the end of the chat.
   ///
   /// If [isOfflineFormEnabled] is true, the offline form will be shown to the user.
-  static Future<void> startChat({bool? isDarkTheme,
+  static Future<void> startChat({
+    bool? isDarkTheme,
     Color? primaryColor,
     bool isPreChatFormEnabled = true,
     bool isAgentAvailabilityEnabled = true,
     bool isChatTranscriptPromptEnabled = true,
     bool isOfflineFormEnabled = true,
+    required String viewTitle,
   }) async {
     await _channel.invokeMethod<void>('startChat', {
       'isDarkTheme': isDarkTheme,
@@ -62,7 +64,8 @@ class Zendesk {
       'isPreChatFormEnabled': isPreChatFormEnabled,
       'isAgentAvailabilityEnabled': isAgentAvailabilityEnabled,
       'isChatTranscriptPromptEnabled': isChatTranscriptPromptEnabled,
-      'isOfflineFormEnabled': isOfflineFormEnabled
+      'isOfflineFormEnabled': isOfflineFormEnabled,
+      'viewTitle': viewTitle
     });
   }
 

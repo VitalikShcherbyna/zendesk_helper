@@ -83,6 +83,7 @@ public class SwiftZendeskHelper: NSObject, FlutterPlugin {
               let isAgentAvailabilityEnabled = dictionary["isAgentAvailabilityEnabled"] as? Bool,
               let isChatTranscriptPromptEnabled = dictionary["isChatTranscriptPromptEnabled"] as? Bool,
               let isOfflineFormEnabled = dictionary["isOfflineFormEnabled"] as? Bool
+              let viewTitle = dictionary["viewTitle"] as? String
                 
         else {return}
         if let primaryColor = dictionary["primaryColor"] as? Int {
@@ -90,7 +91,8 @@ public class SwiftZendeskHelper: NSObject, FlutterPlugin {
         }
         // Name for Bot messages
         let messagingConfiguration = MessagingConfiguration()
-        messagingConfiguration.name = "Chat Bot"
+        messagingConfiguration.name = "Travel Union"
+        messagingConfiguration.isMultilineResponseOptionsEnabled = true
         
         // Chat configuration
         let chatConfiguration = ChatConfiguration()
@@ -98,11 +100,12 @@ public class SwiftZendeskHelper: NSObject, FlutterPlugin {
         chatConfiguration.isAgentAvailabilityEnabled = isAgentAvailabilityEnabled
         chatConfiguration.isChatTranscriptPromptEnabled = isChatTranscriptPromptEnabled
         chatConfiguration.isOfflineFormEnabled = isOfflineFormEnabled
+        chatConfiguration.chatMenuActions = [.emailTranscript, .endChat]
         
         // Build view controller
         let chatEngine = try ChatEngine.engine()
         let viewController = try Messaging.instance.buildUI(engines: [chatEngine], configs: [messagingConfiguration, chatConfiguration])
-        viewController.title = "Contact Us"
+        viewController.title = viewTitle
         if let theme = dictionary["isDarkTheme"] as? Bool {
             if #available(iOS 13.0, *) {
                 viewController.overrideUserInterfaceStyle = theme ? .dark : .light
