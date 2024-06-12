@@ -1,10 +1,7 @@
 package com.muljin.zendesk
 
 import android.app.Activity
-import android.util.Log
 import androidx.annotation.NonNull
-import androidx.appcompat.app.AppCompatActivity
-import com.google.android.material.internal.ContextUtils.getActivity
 import com.zendesk.logger.Logger
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -16,7 +13,6 @@ import io.flutter.plugin.common.MethodChannel.Result
 import zendesk.chat.*
 import zendesk.messaging.MessagingActivity
 
-
 /** ZendeskHelper */
 class ZendeskHelper : FlutterPlugin, MethodCallHandler, ActivityAware {
   // / The MethodChannel that will the communication between Flutter and native Android
@@ -26,7 +22,9 @@ class ZendeskHelper : FlutterPlugin, MethodCallHandler, ActivityAware {
   private lateinit var channel: MethodChannel
   private lateinit var activity: Activity
 
-  override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+  override fun onAttachedToEngine(
+      @NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding
+  ) {
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, "zendesk")
     channel.setMethodCallHandler(this)
   }
@@ -35,56 +33,55 @@ class ZendeskHelper : FlutterPlugin, MethodCallHandler, ActivityAware {
     channel.setMethodCallHandler(null)
   }
 
-  override fun onDetachedFromActivity() {
-  }
+  override fun onDetachedFromActivity() {}
 
-  override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-  }
+  override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {}
 
   override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-      activity = binding.activity
+    activity = binding.activity
   }
 
-  override fun onDetachedFromActivityForConfigChanges() {
-  }
+  override fun onDetachedFromActivityForConfigChanges() {}
 
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
 
-try {
+    try {
 
-
-    when (call.method) {
-      "getPlatformVersion" -> {
+      when (call.method) {
+        "getPlatformVersion" -> {
           result.success("Android ${android.os.Build.VERSION.RELEASE}")
+        }
+        "initialize" -> {
+          initialize(call)
+          result.success(true)
+        }
+        "setVisitorInfo" -> {
+          setVisitorInfo(call)
+          result.success(true)
+        }
+        "setDepartment" -> {
+          setDepartment(call)
+          result.success(true)
+        }
+        "startChat" -> {
+          startChat(call)
+          result.success(true)
+        }
+        "addTags" -> {
+          addTags(call)
+          result.success(true)
+        }
+        "removeTags" -> {
+          removeTags(call)
+          result.success(true)
+        }
+        else -> {
+          result.notImplemented()
+        }
       }
-      "initialize" -> {
-        initialize(call)
-        result.success(true)
-      }
-      "setVisitorInfo" -> {
-        setVisitorInfo(call)
-        result.success(true)
-      }
-      "startChat" -> {
-        startChat(call)
-        result.success(true)
-      }
-      "addTags" -> {
-        addTags(call)
-        result.success(true)
-      }
-      "removeTags" -> {
-        removeTags(call)
-        result.success(true)
-      }
-      else -> {
-        result.notImplemented()
-      }
-
+    } catch (e: Exception) {
+      result.error("unKnowen", e.message, e.toString())
     }
-}catch (e:Exception){
-  result.error("unKnowen",e.message,e.toString());
-}
   }
 
   fun initialize(call: MethodCall) {
@@ -93,6 +90,7 @@ try {
     val applicationId = call.argument<String>("appId") ?: ""
 
     Chat.INSTANCE.init(activity, accountKey, applicationId)
+    setVisitorInfo(call)
   }
 
   fun setVisitorInfo(call: MethodCall) {
@@ -104,12 +102,20 @@ try {
     val profileProvider = Chat.INSTANCE.providers()?.profileProvider()
     val chatProvider = Chat.INSTANCE.providers()?.chatProvider()
 
-    val visitorInfo = VisitorInfo.builder()
-                                    .withName(name)
-                                    .withEmail(email)
-                                    .withPhoneNumber(phoneNumber) // numeric string
-                                    .build()
+    val visitorInfo =
+        VisitorInfo.builder()
+            .withName(name)
+            .withEmail(email)
+            .withPhoneNumber(phoneNumber) // numeric string
+            .build()
     profileProvider?.setVisitorInfo(visitorInfo, null)
+    chatProvider?.setDepartment(department, null)
+  }
+
+  fun setDepartment(call: MethodCall) {
+    val department = call.argument<String>("department") ?: ""
+    val chatProvider = Chat.INSTANCE.providers()?.chatProvider()
+
     chatProvider?.setDepartment(department, null)
   }
 
@@ -128,8 +134,10 @@ try {
   fun startChat(call: MethodCall) {
     val isPreChatFormEnabled = call.argument<Boolean>("isPreChatFormEnabled") ?: true
     val isAgentAvailabilityEnabled = call.argument<Boolean>("isAgentAvailabilityEnabled") ?: true
-    val isChatTranscriptPromptEnabled = call.argument<Boolean>("isChatTranscriptPromptEnabled") ?: true
+    val isChatTranscriptPromptEnabled =
+        call.argument<Boolean>("isChatTranscriptPromptEnabled") ?: true
     val isOfflineFormEnabled = call.argument<Boolean>("isOfflineFormEnabled") ?: true
+    val viewTitle = call.argument<String>("viewTitle") ?: "Contact Us"
     val chatConfigurationBuilder = ChatConfiguration.builder()
     chatConfigurationBuilder
         .withAgentAvailabilityEnabled(isAgentAvailabilityEnabled)
@@ -139,14 +147,13 @@ try {
         .withChatMenuActions(ChatMenuAction.END_CHAT)
 
     val chatConfiguration = chatConfigurationBuilder.build()
-try {
-  MessagingActivity.builder()
-          .withToolbarTitle("Contact Us")
+    try {
+      MessagingActivity.builder()
+          .withToolbarTitle(viewTitle)
           .withEngines(ChatEngine.engine())
           .show(activity, chatConfiguration)
-}catch ( e:Exception){
- throw e;
-}
-
+    } catch (e: Exception) {
+      throw e
+    }
   }
 }

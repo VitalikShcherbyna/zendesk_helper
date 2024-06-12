@@ -13,10 +13,21 @@ class Zendesk {
   /// Offical Docs
   /// iOS: https://developer.zendesk.com/embeddables/docs/chat-sdk-v-2-for-ios/getting_started#initializing-the-sdk
   /// Android: https://developer.zendesk.com/embeddables/docs/chat-sdk-v-2-for-android/getting_started#initializing-the-sdk
-  static Future<void> initialize(String accountKey, String appId) async {
+  static Future<void> initialize(
+    String accountKey,
+    String appId, {
+    required String name,
+    required String email,
+    required String phoneNumber,
+    required String department,
+  }) async {
     await _channel.invokeMethod<void>('initialize', {
       'accountKey': accountKey,
       'appId': appId,
+      'name': name,
+      'email': email,
+      'phoneNumber': phoneNumber,
+      'department': department,
     });
   }
 
@@ -26,12 +37,18 @@ class Zendesk {
     String? name,
     String? email,
     String? phoneNumber,
-    String? department,
   }) async {
     await _channel.invokeMethod<void>('setVisitorInfo', {
       'name': name,
       'email': email,
       'phoneNumber': phoneNumber,
+    });
+  }
+
+  static Future<void> setDepartment({
+    String? department,
+  }) async {
+    await _channel.invokeMethod<void>('setDepartment', {
       'department': department,
     });
   }

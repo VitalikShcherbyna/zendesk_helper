@@ -28,6 +28,9 @@ public class SwiftZendeskHelper: NSObject, FlutterPlugin {
         case "setVisitorInfo":
             setVisitorInfo(dictionary: dic!)
             result(true)
+        case "setDepartment":
+            setDepartment(dictionary: dic!)
+            result(true)
         case "startChat":
             do {
                 try startChat(dictionary: dic!)
@@ -48,11 +51,15 @@ public class SwiftZendeskHelper: NSObject, FlutterPlugin {
     
     func initialize(dictionary: Dictionary<String, Any>) {
         guard let accountKey = dictionary["accountKey"] as? String,
-              let appId = dictionary["appId"] as? String
+              let appId = dictionary["appId"] as? String,
+              let name = dictionary["name"] as? String,
+              let email = dictionary["email"] as? String,
+              let phoneNumber = dictionary["phoneNumber"] as? String
         else { return }
-        
+        chatAPIConfig = ChatAPIConfiguration()
+        chatAPIConfig?.visitorInfo = VisitorInfo(name: name, email: email, phoneNumber: phoneNumber)
+        Chat.instance?.configuration = chatAPIConfig!
         Chat.initialize(accountKey: accountKey, appId: appId)
-        initChatConfig()
     }
     
     func setVisitorInfo(dictionary: Dictionary<String, Any>) {
@@ -60,9 +67,14 @@ public class SwiftZendeskHelper: NSObject, FlutterPlugin {
               let email = dictionary["email"] as? String,
               let phoneNumber = dictionary["phoneNumber"] as? String
         else { return }
-        let department = dictionary["department"] as? String ?? ""
-        chatAPIConfig?.department = department
         chatAPIConfig?.visitorInfo = VisitorInfo(name: name, email: email, phoneNumber: phoneNumber)
+        Chat.instance?.configuration = chatAPIConfig!
+    }
+
+    func setDepartment(dictionary: Dictionary<String, Any>) {
+        guard let department = dictionary["department"] as? String
+        else { return }
+        chatAPIConfig?.department = department
         Chat.instance?.configuration = chatAPIConfig!
     }
     
@@ -99,7 +111,7 @@ public class SwiftZendeskHelper: NSObject, FlutterPlugin {
         chatConfiguration.isAgentAvailabilityEnabled = isAgentAvailabilityEnabled
         chatConfiguration.isChatTranscriptPromptEnabled = isChatTranscriptPromptEnabled
         chatConfiguration.isOfflineFormEnabled = isOfflineFormEnabled
-        chatConfiguration.chatMenuActions = [.emailTranscript, .endChat]
+        chatConfiguration.chatMenuActions = [.endChat]
 
         if isPreChatFormEnabled {
             let formConfiguration = ChatFormConfiguration(name: .required,
@@ -108,6 +120,8 @@ public class SwiftZendeskHelper: NSObject, FlutterPlugin {
                                                 department: .required)
             chatConfiguration.isPreChatFormEnabled = true
             chatConfiguration.preChatFormConfiguration = formConfiguration
+        } else {
+            chatConfiguration.isPreChatFormEnabled = false
         }
         
         // Build view controller
@@ -154,9 +168,4 @@ public class SwiftZendeskHelper: NSObject, FlutterPlugin {
         return UIColor(red: red, green: green, blue: blue, alpha: alpha)
     }
     
-    func initChatConfig() {
-        if (chatAPIConfig == nil) {
-            chatAPIConfig = ChatAPIConfiguration()
-        }
-    }
 }
